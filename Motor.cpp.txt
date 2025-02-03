@@ -1,0 +1,50 @@
+#include "Motor.h"
+
+Motor::Motor(int enablePin, int dir1Pin, int dir2Pin, int minRange, int maxRange, int maxPower) {
+   mEnablePin = enablePin;
+   mDir1Pin = dir1Pin;
+   mDir2Pin = dir2Pin;
+   mMinRange = minRange;
+   mMaxRange = maxRange;
+   mMaxPower = maxPower;
+}
+
+void Motor::setPower(int power) {
+  // power - a velocidade do motor entre -maxPower e +maxPower
+  // power = 0 => stop
+  // power < 0 sendido de rotação correspondente a recuar
+  // power > 0 sentido de rotação correspondente a avançar
+
+  // A velocidade é definida com analogWrite(mEnablePin, v) onde v corresponde ao duty cycle num intervalo de 0 a 255.
+  // Nem todas as velocidades de 0 a 255 são viaveis: 
+  // - De 0 a um minRange, o motor não consegue rodar pois não tem força suficinete para ultrapassar a inércia e atrito.  
+  // - A partir de um maxRangeo a velociade é demasiado grande para a aplicação em causa.
+  // Assim, o valor de power no intervalo [-maxPower, +maxPower] é mapeado num valor no intervalo [minRange, maxRange]
+  
+  if(power == 0) {
+    stop();
+    return;
+  }
+
+  if(power > 0) {
+    digitalWrite(mDir1Pin, LOW);
+    digitalWrite(mDir2Pin, HIGH);
+  }
+  else {
+    digitalWrite(mDir1Pin, HIGH);
+    digitalWrite(mDir2Pin, LOW);
+  }
+
+  analogWrite(mEnablePin, map(abs(power), 1, mMaxPower, mMinRange, mMaxRange));  
+}
+
+void Motor::stop() {
+  // Para o motor
+  digitalWrite(mEnablePin, LOW);  
+}
+
+void Motor::brake() {
+  // Trava o motor
+  digitalWrite(mDir1Pin, LOW);  
+  digitalWrite(mDir2Pin, LOW);  
+}
